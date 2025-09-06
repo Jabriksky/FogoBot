@@ -35,9 +35,6 @@ def print_success(message):
 def print_error(message):
     print(f"\n❌ {message}")
 
-def print_warning(message):
-    print(f"\n⚠️  {message}")
-
 def rpc_request(method, params=None):
     if params is None:
         params = []
@@ -114,7 +111,6 @@ def wrap_fogo(private_key: str, amount_fogo: float):
     
     if not spl_fogo_account:
         print_error("No Existing SPL FOGO Account Found!")
-        print_info("Status", "You Need to Create a SPL FOGO Account First!")
         return None
 
     print_info("Existing SPL FOGO Account", str(spl_fogo_account))
@@ -122,7 +118,7 @@ def wrap_fogo(private_key: str, amount_fogo: float):
     print_info("Current SPL FOGO Balance", f"{spl_fogo_balance/1e9:.9f} SPL FOGO")
     
     print_separator()
-    print_info("Status", "Creating Proper Wrap Transaction...")
+    print_info("Status", "Creating Wrap Transaction...")
 
     temp_account_kp = Keypair()
     temp_account_pub = temp_account_kp.public_key
@@ -173,8 +169,6 @@ def wrap_fogo(private_key: str, amount_fogo: float):
     tx.add(create_account_ix, init_ix, transfer_ix, close_ix)
 
     blockhash = get_latest_blockhash()
-    print_info("Latest Blockhash", blockhash[:20] + "...")
-    
     tx.recent_blockhash = blockhash
     tx.fee_payer = owner
     tx.sign(wallet, temp_account_kp)
@@ -182,30 +176,12 @@ def wrap_fogo(private_key: str, amount_fogo: float):
     tx_bytes = tx.serialize()
     tx_b64 = base64.b64encode(tx_bytes).decode("utf-8")
 
-    print_info("Status", "Sending Transaction to Network...")
     resp = send_raw_transaction(tx_b64)
     
-    print_separator()
     if "result" in resp:
         print_success("FOGO Successfully Wrapped to SPL FOGO!")
-
         signature = resp["result"]
-        print_info("Transaction Signature", signature)
         print_info("Transaction Explorer", EXPLORER+signature)
-        
-        time.sleep(3)
-        
-        new_fogo_balance = get_fogo_balance(str(owner))
-        new_spl_fogo_balance = get_spl_fogo_balance(str(owner))
-        print_separator()
-        print_info("Updated FOGO Balance", f"{new_fogo_balance/1e9:.9f} FOGO")
-        print_info("Updated SPL FOGO Balance", f"{new_spl_fogo_balance/1e9:.9f} SPL FOGO")
-        
-        fogo_change = (new_fogo_balance - fogo_balance) / 1e9
-        spl_fogo_change = (new_spl_fogo_balance - spl_fogo_balance) / 1e9
-        print_info("FOGO Change", f"{fogo_change:+.9f} FOGO")
-        print_info("SPL FOGO Change", f"{spl_fogo_change:+.9f} SPL FOGO")
-        
         return str(spl_fogo_account)
     else:
         print_error("Transaction failed!")
@@ -224,9 +200,9 @@ def unwrap_fogo(private_key: str, amount_spl_fogo: float):
     print_separator()
 
     fogo_balance = get_fogo_balance(str(owner))
-    print_info("Current FOGO Balance", f"{fogo_balance/1e9:.9f} FOGO")
-
     spl_fogo_balance = get_spl_fogo_balance(str(owner))
+    
+    print_info("Current FOGO Balance", f"{fogo_balance/1e9:.9f} FOGO")
     print_info("Current SPL FOGO Balance", f"{spl_fogo_balance/1e9:.9f} SPL FOGO")
     
     amount = int(amount_spl_fogo * 10**9)
@@ -234,13 +210,9 @@ def unwrap_fogo(private_key: str, amount_spl_fogo: float):
     
     if spl_fogo_balance < amount:
         print_error("Insufficient SPL FOGO Balance for Unwrapping!")
-        return
-
-    print_separator()
-    print_info("Status", "Preparing Transaction...")
+        return None
 
     blockhash = get_latest_blockhash()
-    print_info("Latest Blockhash", blockhash[:20] + "...")
 
     resp = rpc_request(
         "getTokenAccountsByOwner",
@@ -257,16 +229,12 @@ def unwrap_fogo(private_key: str, amount_spl_fogo: float):
             
     if source_ata is None:
         print_error("No SPL FOGO Token Account Found With Balance!")
-        return
+        return None
         
-    print_info("Source SPL FOGO Account", str(source_ata))
-
     temp_account_kp = Keypair()
     temp_account_pub = temp_account_kp.public_key
 
     rent_lamports = get_min_rent_exempt_for_token_account()
-    
-    print_info("Status", "Building Transaction...")
 
     create_account_ix = create_account(
         CreateAccountParams(
@@ -317,50 +285,50 @@ def unwrap_fogo(private_key: str, amount_spl_fogo: float):
     tx_bytes = tx.serialize()
     tx_b64 = base64.b64encode(tx_bytes).decode("utf-8")
 
-    print_info("Status", "Sending Transaction to Network...")
     resp = send_raw_transaction(tx_b64)
     
-    print_separator()
     if "result" in resp:
         print_success("SPL FOGO Successfully Unwrapped to FOGO!")
-
         signature = resp["result"]
-        print_info("Transaction Signature", signature)
         print_info("Transaction Explorer", EXPLORER+signature)
-
-        time.sleep(3)
-        
-        new_fogo_balance = get_fogo_balance(str(owner))
-        new_spl_fogo_balance = get_spl_fogo_balance(str(owner))
-        print_separator()
-        print_info("Updated FOGO Balance", f"{new_fogo_balance/1e9:.9f} FOGO")
-        print_info("Updated SPL FOGO Balance", f"{new_spl_fogo_balance/1e9:.9f} SPL FOGO")
-        
-        fogo_change = (new_fogo_balance - fogo_balance) / 1e9
-        spl_fogo_change = (new_spl_fogo_balance - spl_fogo_balance) / 1e9
-        print_info("FOGO Change", f"{fogo_change:+.9f} FOGO")
-        print_info("SPL FOGO Change", f"{spl_fogo_change:+.9f} SPL FOGO")
+        return True
     else:
         print_error("Transaction failed!")
         if "error" in resp:
             print(f"Error: {resp['error']}")
+        return False
 
-def check_balances(private_key: str):
+def check_balance(private_key: str):
     print_header("CURRENT BALANCES")
-    
     secret_bytes = base58.b58decode(private_key)
     wallet = Keypair.from_secret_key(secret_bytes)
     owner = wallet.public_key
-    
-    print_info("Wallet Address", str(owner))
-    print_separator()
-    
     fogo_balance = get_fogo_balance(str(owner))
     spl_fogo_balance = get_spl_fogo_balance(str(owner))
-    
     print_info("FOGO Balance", f"{fogo_balance/1e9:.9f} FOGO")
     print_info("SPL FOGO Balance", f"{spl_fogo_balance/1e9:.9f} SPL FOGO")
     print_separator()
+
+def auto_mode(private_key: str, amount: float, delay: int = 15, max_loops: int = 0):
+    loop = 0
+    try:
+        while True:
+            loop += 1
+            print_header(f"AUTO MODE LOOP #{loop}")
+            
+            wrap_fogo(private_key, amount)
+            time.sleep(delay)
+            
+            unwrap_fogo(private_key, amount)
+            time.sleep(delay)
+
+            check_balance(private_key)
+
+            if max_loops > 0 and loop >= max_loops:
+                print_success("Auto Mode Completed.")
+                break
+    except Exception as e:
+        print_error(f"Error in auto mode: {e}")
 
 def show_menu():
     print_header("FOGO TOOL - Hasbi")
@@ -368,60 +336,47 @@ def show_menu():
     print("  1. Wrap FOGO to SPL FOGO")
     print("  2. Unwrap SPL FOGO to FOGO")
     print("  3. Check Balances")
-    print("  4. Exit")
+    print("  4. Exit")   
+    print("  5. Auto Mode (Loop Wrap/Unwrap)")
     print_separator()
 
-def auto_mode(private_key: str, amount: float, delay: int = 10):
-    """
-    Jalankan wrap -> unwrap terus menerus.
-    amount: jumlah FOGO/SPL FOGO per transaksi
-    delay: jeda antar transaksi (detik)
-    """
+def main():
     try:
         with open('accounts.txt', 'r') as file:
             private_key = file.read().strip()
 
         while True:
             show_menu()
-            choice = input("Enter Your Choice [1-4] -> ").strip()
+            choice = input("Enter Your Choice [1-5] -> ").strip()
             
             if choice == "1":
                 amount = float(input("\nEnter Amount of FOGO to Wrap -> "))
-                if amount <= 0:
-                    print_error("Amount must be greater than 0")
-                    continue
                 wrap_fogo(private_key, amount)
                 
             elif choice == "2":
                 amount = float(input("\nEnter Amount of SPL FOGO to Unwrap -> "))
-                if amount <= 0:
-                    print_error("Amount must be greater than 0")
-                    continue
                 unwrap_fogo(private_key, amount)
                 
             elif choice == "3":
-                check_balances(private_key)
+                check_balance(private_key)
                 
             elif choice == "4":
                 print_header("GOODBYE!")
                 break
+
+            elif choice == "5":
+                amount = float(input("\nEnter Amount for Auto Mode -> "))
+                loops = int(input("Enter How Many Loops (0 = infinite) -> "))
+                auto_mode(private_key, amount, delay=15, max_loops=loops)
                 
             else:
-                print_error("Invalid choice! Please select 1-4")
+                print_error("Invalid choice! Please select 1-5")
                 
             if choice in ["1", "2", "3"]:
                 input("\nPress Enter to continue...")
                 
-    except ValueError:
-        print_error("Invalid input! Please enter a valid number.")
-    except KeyboardInterrupt:
-        print("\n\nExiting...")
-    except FileNotFoundError:
-        print("\n\nFile 'accounts.txt' Not Found.")
-        return
     except Exception as e:
         print_error(f"An error occurred: {str(e)}")
-        input("\nPress Enter to continue...")
 
 if __name__ == "__main__":
     main()
