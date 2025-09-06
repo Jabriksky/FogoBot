@@ -371,7 +371,7 @@ def show_menu():
     print("  4. Exit")
     print_separator()
 
-def main():50
+def main 50():
     try:
         with open('accounts.txt', 'r') as file:
             private_key = file.read().strip()
