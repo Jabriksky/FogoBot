@@ -18,27 +18,27 @@ requests.packages.urllib3.disable_warnings()
 RPC_URL = "https://testnet.fogo.io/"
 EXPLORER = "https://fogoscan.com/tx/"
 
-def print_header(title):
+def auto_modeprint_header(title):
     print("\n" + "="*60)
     print(f"  {title}")
     print("="*60)
 
-def print_separator():
+def auto_modeprint_separator():
     print("-" * 60)
 
-def print_info(label, value):
+def auto_modeprint_info(label, value):
     print(f"  {label:<25}: {value}")
 
-def print_success(message):
+def auto_modeprint_success(message):
     print(f"\n✅ {message}")
 
-def print_error(message):
+def auto_modeprint_error(message):
     print(f"\n❌ {message}")
 
-def print_warning(message):
+def auto_modeprint_warning(message):
     print(f"\n⚠️  {message}")
 
-def rpc_request(method, params=None):
+def auto_moderpc_request(method, params=None):
     if params is None:
         params = []
     payload = {"jsonrpc": "2.0", "id": 1, "method": method, "params": params}
@@ -46,20 +46,20 @@ def rpc_request(method, params=None):
     res.raise_for_status()
     return res.json()
 
-def get_min_rent_exempt_for_token_account():
+def auto_modeget_min_rent_exempt_for_token_account():
     size = 165
     resp = rpc_request("getMinimumBalanceForRentExemption", [size])
     return int(resp["result"])
 
-def get_latest_blockhash():
+def auto_modeget_latest_blockhash():
     r = rpc_request("getLatestBlockhash", [{"commitment": "finalized"}])
     return r["result"]["value"]["blockhash"]
 
-def get_fogo_balance(pubkey: str) -> int:
+def auto_modeget_fogo_balance(pubkey: str) -> int:
     resp = rpc_request("getBalance", [pubkey, {"commitment": "finalized"}])
     return int(resp["result"]["value"])
 
-def get_spl_fogo_balance(owner: str) -> int:
+def auto_modeget_spl_fogo_balance(owner: str) -> int:
     resp = rpc_request(
         "getTokenAccountsByOwner",
         [owner, {"mint": str(WRAPPED_SOL_MINT)}, {"encoding": "jsonParsed"}],
@@ -71,7 +71,7 @@ def get_spl_fogo_balance(owner: str) -> int:
         total += amt
     return total
 
-def send_raw_transaction(tx_bytes_b64):
+def auto_modesend_raw_transaction(tx_bytes_b64):
     return rpc_request(
         "sendTransaction",
         [
@@ -80,7 +80,7 @@ def send_raw_transaction(tx_bytes_b64):
         ],
     )
 
-def auto_modewrap_fogo(private_key: str, amount_fogo: float):
+def auto_modeauto_modewrap_fogo(private_key: str, amount_fogo: float):
     print_header("WRAPPING FOGO TO SPL FOGO")
     
     secret_bytes = base58.b58decode(private_key)
@@ -345,7 +345,7 @@ def auto_modeunwrap_fogo(private_key: str, amount_spl_fogo: float):
         if "error" in resp:
             print(f"Error: {resp['error']}")
 
-def check_balances(private_key: str):
+def auto_modecheck_balances(private_key: str):
     print_header("CURRENT BALANCES")
     
     secret_bytes = base58.b58decode(private_key)
@@ -362,7 +362,7 @@ def check_balances(private_key: str):
     print_info("SPL FOGO Balance", f"{spl_fogo_balance/1e9:.9f} SPL FOGO")
     print_separator()
 
-def show_menu():
+def auto_modeshow_menu():
     print_header("FOGO TOOL - Hasbi")
     print("\nSelect an Option:")
     print("  1. Wrap FOGO to SPL FOGO")
@@ -371,7 +371,7 @@ def show_menu():
     print("  4. Exit")
     print_separator()
 
-def main():
+def auto_modemain():
     try:
         with open('accounts.txt', 'r') as file:
             private_key = file.read().strip()
