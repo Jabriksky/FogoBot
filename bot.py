@@ -18,7 +18,7 @@ requests.packages.urllib3.disable_warnings()
 RPC_URL = "https://testnet.fogo.io/"
 EXPLORER = "https://fogoscan.com/tx/"
 
-def auto_modeprint_header(title):
+def auto_mode print_header(title):
     print("\n" + "="*60)
     print(f"  {title}")
     print("="*60)
