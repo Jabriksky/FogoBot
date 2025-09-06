@@ -371,7 +371,12 @@ def show_menu():
     print("  4. Exit")
     print_separator()
 
-def main 50():
+def auto_mode(private_key: str, amount: float, delay: int = 10):
+    """
+    Jalankan wrap -> unwrap terus menerus.
+    amount: jumlah FOGO/SPL FOGO per transaksi
+    delay: jeda antar transaksi (detik)
+    """
     try:
         with open('accounts.txt', 'r') as file:
             private_key = file.read().strip()
