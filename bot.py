@@ -80,7 +80,7 @@ def send_raw_transaction(tx_bytes_b64):
         ],
     )
 
-def wrap_fogo(private_key: str, amount_fogo: float):
+def auto_modewrap_fogo(private_key: str, amount_fogo: float):
     print_header("WRAPPING FOGO TO SPL FOGO")
     
     secret_bytes = base58.b58decode(private_key)
@@ -213,7 +213,7 @@ def wrap_fogo(private_key: str, amount_fogo: float):
             print(f"Error: {resp['error']}")
         return None
 
-def unwrap_fogo(private_key: str, amount_spl_fogo: float):
+def auto_modeunwrap_fogo(private_key: str, amount_spl_fogo: float):
     print_header("UNWRAPPING SPL FOGO TO FOGO")
     
     secret_bytes = base58.b58decode(private_key)
