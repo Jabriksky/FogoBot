@@ -363,7 +363,7 @@ def check_balances(private_key: str):
     print_separator()
 
 def show_menu():
-    print_header("FOGO TOOL - VONSSY")
+    print_header("FOGO TOOL - Hasbi")
     print("\nSelect an Option:")
     print("  1. Wrap FOGO to SPL FOGO")
     print("  2. Unwrap SPL FOGO to FOGO")
